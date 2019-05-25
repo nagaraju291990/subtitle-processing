@@ -1,0 +1,3082 @@
+1
+00:00:14,980 --> 00:00:19,199
+Welcome to lecture thirty-six of the course
+on High Performance Computing. In previous
+
+2
+00:00:19,199 --> 00:00:24,070
+two lectures, we have started looking at the
+file system which is an important part of
+
+3
+00:00:24,070 --> 00:00:28,130
+the software side of any computer system,
+particularly if your programs are dealing
+
+4
+00:00:28,130 --> 00:00:32,230
+with data, there must survive beyond the execution
+time of your program.
+
+5
+00:00:32,230 --> 00:00:36,960
+This is a new kind of data, in the sense that,
+until now, when we talked about the data of
+
+6
+00:00:36,960 --> 00:00:42,760
+a program, we were referring to data that
+was created and used by the program for parts
+
+7
+00:00:42,760 --> 00:00:46,960
+of the execution time of the program, where
+as, in reality, there could be situations
+
+8
+00:00:46,960 --> 00:00:51,239
+where you want the data to survive beyond
+the execution time of the program; in which
+
+9
+00:00:51,239 --> 00:00:53,710
+case, files and the file system become important.
+
+10
+00:00:53,710 --> 00:00:59,309
+Now, we were looking at some of the design
+issues, the mechanisms that are taken into
+
+11
+00:00:59,309 --> 00:01:05,039
+account by people who design operating systems,
+in designing the file system part of the operating
+
+12
+00:01:05,039 --> 00:01:10,679
+system. And one of the...I have talked about
+three main issues we were going to discuss-one,
+
+13
+00:01:10,679 --> 00:01:15,789
+relating to disk block management; the management
+of the disk which is the important persistent
+
+14
+00:01:15,789 --> 00:01:21,399
+on nonvolatile secondary storage device, which
+we are taking into account in discussing file
+
+15
+00:01:21,399 --> 00:01:27,090
+systems. And we saw that, the prevalent mechanism
+that is used for managing the disk in terms
+
+16
+00:01:27,090 --> 00:01:34,090
+of allocating disk blocks to files is something
+known as indexed allocation; in which, an
+
+17
+00:01:35,759 --> 00:01:42,399
+array of disk block addresses is associated
+with the each file. The first disk block address
+
+18
+00:01:42,399 --> 00:01:48,929
+would refer to the first disk block containing
+the data pertaining to this file. The subsequent
+
+19
+00:01:48,929 --> 00:01:53,489
+data and the file would be contained in the
+subsequent disk block, as mentioned in the
+
+20
+00:01:53,489 --> 00:01:58,270
+index.
+Now, it is important in designing such a mechanism,
+
+21
+00:01:58,270 --> 00:02:03,450
+that one takes into account, the frequently
+occurring kinds of access patterns to files.
+
+22
+00:02:03,450 --> 00:02:07,239
+In addition to this, one must take into account,
+the need for files should be able to grow
+
+23
+00:02:07,239 --> 00:02:12,830
+and shrink, potentially to fairly large sizes.
+And in addition, the designer of the file
+
+24
+00:02:12,830 --> 00:02:17,390
+system must ensure that the size of the index
+of the data structure that is used to keep
+
+25
+00:02:17,390 --> 00:02:21,810
+track of a file, should not be too large.
+And among the various alternatives that we
+
+26
+00:02:21,810 --> 00:02:27,620
+looked at, this form of indexed allocation,
+as used in Unix or Linux systems was found
+
+27
+00:02:27,620 --> 00:02:32,569
+to be the best. So, in short, there are, in
+this particular example, I am showing you
+
+28
+00:02:32,569 --> 00:02:39,569
+a index or index node or I node for short,
+which contains just twelve disk block addresses,
+
+29
+00:02:40,719 --> 00:02:45,030
+but could actually allow you to represent
+a file which is many gigabytes in size due
+
+30
+00:02:45,030 --> 00:02:51,219
+to the use of not only in direction, but double
+indirection. In other words, not just indicating
+
+31
+00:02:51,219 --> 00:02:56,870
+the addresses of the disk blocks containing
+the data of the file, but in addition, using
+
+32
+00:02:56,870 --> 00:03:02,469
+disk blocks to contain the disk block addresses
+of subsequent blocks, pertaining to the file.
+
+33
+00:03:02,469 --> 00:03:06,700
+And doing this not only at one level of indirection,
+but at two or may be even three levels of
+
+34
+00:03:06,700 --> 00:03:13,700
+in indirection to allow for fairly large files,
+as I said, up to gigabytes in size with assuming
+
+35
+00:03:14,260 --> 00:03:19,349
+that the size of a single disk block or sector
+is 1 kilobyte even if there are only twelve
+
+36
+00:03:19,349 --> 00:03:22,980
+indices at twelve addresses included in the
+index.
+
+37
+00:03:22,980 --> 00:03:29,980
+Now, we will move on to the second file system
+design issue, in other words, name management.
+
+38
+00:03:30,719 --> 00:03:37,459
+Recall that, we understand a file to be a
+named sequence of data on a secondary storage
+
+39
+00:03:37,459 --> 00:03:41,370
+device, such as a disk.
+So, the management of the names of the files
+
+40
+00:03:41,370 --> 00:03:45,709
+is important. The question of how can a user
+refer to a file and how will the operating
+
+41
+00:03:45,709 --> 00:03:50,409
+system associate the correct name with a correct
+collection of disk blocks, in order to provide
+
+42
+00:03:50,409 --> 00:03:53,139
+the data that the user actually requires.
+
+43
+00:03:53,139 --> 00:03:58,730
+Now, the issues in name management, first
+of all, we have to have a clear understanding
+
+44
+00:03:58,730 --> 00:04:04,359
+of how a user can refer to a file. So, how
+were the names constructed? And given a name,
+
+45
+00:04:04,359 --> 00:04:09,709
+how does the operating system locate the file
+on the disk and subsequently read the associated
+
+46
+00:04:09,709 --> 00:04:14,060
+disk blocks to provide data as requested by
+the program in execution?
+
+47
+00:04:14,060 --> 00:04:19,810
+Now, the primary structure which is used by
+operating systems today, for name management
+
+48
+00:04:19,810 --> 00:04:26,220
+is something known as a directory. And the
+directory is a mapping between file names
+
+49
+00:04:26,220 --> 00:04:30,520
+and the corresponding file descriptors. You
+will recall that, I had used the term file
+
+50
+00:04:30,520 --> 00:04:35,680
+descriptor in the previous lecture, to refer
+to, in the day, operating system data structure
+
+51
+00:04:35,680 --> 00:04:40,540
+that is used keep track of which disk blocks
+correspond to a particular file.
+
+52
+00:04:40,540 --> 00:04:45,660
+So, corresponding to any one file, they would
+be one file descriptor, which would contain
+
+53
+00:04:45,660 --> 00:04:50,020
+the information regarding the various disk
+blocks associated with that file, along with
+
+54
+00:04:50,020 --> 00:04:55,630
+possibly other information. But what we are
+learning today is that, the directory or the
+
+55
+00:04:55,630 --> 00:05:02,630
+mapping between the names and the actual descriptors
+could be maintained, not within the file descriptor,
+
+56
+00:05:03,360 --> 00:05:05,240
+but rather in a separate structure called
+a directory.
+
+57
+00:05:05,240 --> 00:05:10,270
+In other words, it is not typically the case
+that the name is part of the file descriptor.
+
+58
+00:05:10,270 --> 00:05:15,330
+As we saw in the previous class, the information
+in the file descriptor was typically something
+
+59
+00:05:15,330 --> 00:05:21,620
+like the index, in other words, the specification
+of which disk blocks contain the data associated
+
+60
+00:05:21,620 --> 00:05:25,980
+with this file. And there could be other information
+as we are shortly going to see. So, in short,
+
+61
+00:05:25,980 --> 00:05:30,510
+then the mechanism for name management, the
+primary mechanism for name management is the
+
+62
+00:05:30,510 --> 00:05:35,080
+directory and mapping between file names and
+file descriptors. So, the user can refer to
+
+63
+00:05:35,080 --> 00:05:39,420
+a file by a name, the operating system can
+refer to that name within the corresponding
+
+64
+00:05:39,420 --> 00:05:44,330
+directory and hence get the file descriptor
+using which, the disk blocks of the file can
+
+65
+00:05:44,330 --> 00:05:45,910
+be accessed.
+
+66
+00:05:45,910 --> 00:05:51,210
+Now, the issue which arises now is, how could
+the operating system maintain this directory
+
+67
+00:05:51,210 --> 00:05:56,440
+information efficiently. Now, one possibility
+which you could immediately think of is that,
+
+68
+00:05:56,440 --> 00:06:02,470
+the operating system could maintain a single
+directory for the entire disk. So, for each
+
+69
+00:06:02,470 --> 00:06:07,870
+of the disks which is, which contains files,
+there could be a directory and that directory
+
+70
+00:06:07,870 --> 00:06:11,570
+could contain, for each of the files on that
+disk, the name and the corresponding file
+
+71
+00:06:11,570 --> 00:06:16,880
+descriptor. And you could immediately see
+that, this is somewhat restrictive in that,
+
+72
+00:06:16,880 --> 00:06:21,800
+if there is only one directory for the entire
+disk, then there has to be a unique name for
+
+73
+00:06:21,800 --> 00:06:26,600
+every file on the disk and therefore, it would
+have to be ensured that, no two files have
+
+74
+00:06:26,600 --> 00:06:31,170
+the same name. So, this may not sound like
+much of a problem, but if you think about
+
+75
+00:06:31,170 --> 00:06:34,930
+it a little bit, this could be a severe problem.
+Imagine, there is a situation where there
+
+76
+00:06:34,930 --> 00:06:40,460
+is a very large disk. Let say, 300 or 500
+gigabytes in size. Such a disk could contain
+
+77
+00:06:40,460 --> 00:06:47,460
+many thousands of files. And the files may
+potentially be owned by different users. Now,
+
+78
+00:06:47,540 --> 00:06:51,680
+if it is required that each user makes up
+unique name across the entire file system
+
+79
+00:06:51,680 --> 00:06:55,670
+for each of his files, and you will see that,
+this would end up being a problem. Every time
+
+80
+00:06:55,670 --> 00:07:00,320
+that I wanted to create a name for a file
+that I intend to use, I would first have to,
+
+81
+00:07:00,320 --> 00:07:05,120
+in some sense, ensure that this name had not
+been used before by anyone else, any of the
+
+82
+00:07:05,120 --> 00:07:10,300
+user or in fact, in fact, in fact, myself,
+including myself for other files on the same
+
+83
+00:07:10,300 --> 00:07:13,320
+file system.
+So, this is definitely constrained that be
+
+84
+00:07:13,320 --> 00:07:20,320
+too much to cooperate. So, for example, I
+mean, we have talked about many times about
+
+85
+00:07:20,320 --> 00:07:25,510
+a C program called program dot c. And if the
+situation was one way, the operating system
+
+86
+00:07:25,510 --> 00:07:29,970
+was maintaining a single directory for the
+entire disk, then this what imply that, there
+
+87
+00:07:29,970 --> 00:07:34,610
+could be only one file called program dot
+c in the entire system among all the users
+
+88
+00:07:34,610 --> 00:07:40,390
+on the system. There could be only one file
+called program dot c and very clearly this
+
+89
+00:07:40,390 --> 00:07:44,280
+would be far too restrictive.
+Now, there may be certain situations where
+
+90
+00:07:44,280 --> 00:07:48,680
+you could have seen this as not being too
+much of a problem. For example, let suppose
+
+91
+00:07:48,680 --> 00:07:54,150
+that it is a situation where there is only
+one user. Simple example of that is a personal
+
+92
+00:07:54,150 --> 00:07:58,870
+computer. There may only be the one user,
+in fact, on certain early personal computers,
+
+93
+00:07:58,870 --> 00:08:04,030
+this kind of a directory may have been adequate.
+But today, very clearly we must understand
+
+94
+00:08:04,030 --> 00:08:09,500
+that, even on a personal computer, there could
+be many users and this is too much of a restriction
+
+95
+00:08:09,500 --> 00:08:13,810
+which leads us to the second possibility.
+Rather than maintaining a single directory
+
+96
+00:08:13,810 --> 00:08:18,580
+for all the files on the disk, the operating
+system could maintain a separate directory
+
+97
+00:08:18,580 --> 00:08:19,710
+for each user.
+
+98
+00:08:19,710 --> 00:08:23,980
+So, if there are ten users on a system, there
+could be ten directories, one for each of
+
+99
+00:08:23,980 --> 00:08:29,200
+the users. And the user of the directory of
+a given user will contain all the files, would
+
+100
+00:08:29,200 --> 00:08:34,310
+contain information about the mapping between
+names and descriptors for all the files created
+
+101
+00:08:34,310 --> 00:08:40,479
+and used by that particular user. Now, once
+again, we need to, we understand now that,
+
+102
+00:08:40,479 --> 00:08:45,800
+under this mechanism, there could actually
+be many files called program dot c on a particular
+
+103
+00:08:45,800 --> 00:08:52,800
+disk. Each user could now have a file called
+program dot c. And when a program which I
+
+104
+00:08:52,889 --> 00:08:56,610
+have written, tries to open a file called
+program dot c, the operating system would
+
+105
+00:08:56,610 --> 00:09:03,120
+know that, it has to look for the mapping
+information relating to program dot c in the
+
+106
+00:09:03,120 --> 00:09:07,110
+directory associated with me, as a user. You
+will recall that, we understand that the operating
+
+107
+00:09:07,110 --> 00:09:11,620
+system maintain or differentiates between
+users by having a different user ID for every
+
+108
+00:09:11,620 --> 00:09:14,730
+user.
+So, the user that, the directory associated
+
+109
+00:09:14,730 --> 00:09:20,560
+with my user ID is one that would be refer
+to, when my program tries to open a file called
+
+110
+00:09:20,560 --> 00:09:26,990
+program dot c. Now, you may imagine that,
+this too could be a little bit restrictive.
+
+111
+00:09:26,990 --> 00:09:32,509
+Because now, while every user on the system
+could have their own file called program dot
+
+112
+00:09:32,509 --> 00:09:39,509
+c, there could only be, as far as I am concerned,
+as myself being one user, I could only have
+
+113
+00:09:39,579 --> 00:09:43,810
+one file by a given name. So, I would have
+to have unique names for all the files which
+
+114
+00:09:43,810 --> 00:09:47,439
+I create. And this is the simple example of
+how this might not might be a problem.
+
+115
+00:09:47,439 --> 00:09:52,569
+Now, it might be the case. I would be happy
+to have only one file called program dot c,
+
+116
+00:09:52,569 --> 00:09:57,079
+but I may want to have many files called README
+.And those of you who have done programming
+
+117
+00:09:57,079 --> 00:10:02,879
+or have written documentation may have made
+use of the file name README. You will put
+
+118
+00:10:02,879 --> 00:10:06,779
+a lot of information relating to a particular
+project that you have done, a particular assignment
+
+119
+00:10:06,779 --> 00:10:10,720
+that you worked with or something like that,
+into a file called README.
+
+120
+00:10:10,720 --> 00:10:15,699
+And hence if you have only one directory for
+you as a user, then there could be only one
+
+121
+00:10:15,699 --> 00:10:20,499
+file called README and this in turn, might
+be a constraint. Many of you are students,
+
+122
+00:10:20,499 --> 00:10:24,559
+you may be taking multiple, many courses and
+in each course, you may have many programming
+
+123
+00:10:24,559 --> 00:10:28,879
+assignments to do and typically may want to
+have many files which actually have the same
+
+124
+00:10:28,879 --> 00:10:33,790
+name such as README or even program dot c.
+For each of the assignments and each of the
+
+125
+00:10:33,790 --> 00:10:40,149
+courses that you do, if you want to have the
+same name for the file, program dot c, there
+
+126
+00:10:40,149 --> 00:10:43,749
+should still be possible.
+In other words, many different files, because
+
+127
+00:10:43,749 --> 00:10:47,220
+there is one file for each of the different
+programs that you wrote, but you may want
+
+128
+00:10:47,220 --> 00:10:52,089
+to call each of the files, program dot c .This
+may not be a good habit in general, because
+
+129
+00:10:52,089 --> 00:10:56,490
+could lead to confusion. But it should not
+be ruled out by the directory mechanism of
+
+130
+00:10:56,490 --> 00:11:00,610
+the computer system. And possibly, the need
+for multiple files called README would be
+
+131
+00:11:00,610 --> 00:11:03,449
+a more appealing kind of an example.
+
+132
+00:11:03,449 --> 00:11:09,129
+Hence we need to look beyond a single directory
+for the whole disk and potentially even beyond
+
+133
+00:11:09,129 --> 00:11:14,290
+a single directory for each user to something
+which will allow users to have multiple files
+
+134
+00:11:14,290 --> 00:11:21,149
+of the same name. And what this leads to is
+a much more general idea; the idea of the
+
+135
+00:11:21,149 --> 00:11:26,379
+operating system actually maintaining a somewhat
+complicated structure for directories, and
+
+136
+00:11:26,379 --> 00:11:32,670
+I will describe it as, what we have come to
+is, a Unix or a Linux type idea. Rather than
+
+137
+00:11:32,670 --> 00:11:35,889
+maintaining a single directory across the
+entire disk or a single directory for each
+
+138
+00:11:35,889 --> 00:11:42,889
+user, the operating system maintains a tree
+structured hierarchy of directories. And remove
+
+139
+00:11:43,819 --> 00:11:49,160
+the word single from there. A tree structured
+hierarchy of directories. In other words,
+
+140
+00:11:49,160 --> 00:11:53,069
+not a single directory even for users, but
+a hierarchy of directories.
+
+141
+00:11:53,069 --> 00:11:56,749
+We have seen the word hierarchy before, and
+we understood that whenever the word hierarchy
+
+142
+00:11:56,749 --> 00:12:02,939
+was used, we were referring to some kind of
+a multileveled structure. And hence we are
+
+143
+00:12:02,939 --> 00:12:07,079
+talking here about something more complicated
+than either of the earlier to, and must therefore
+
+144
+00:12:07,079 --> 00:12:12,509
+be much more general and allow for much more
+aggressive kinds of names to be used, such
+
+145
+00:12:12,509 --> 00:12:17,019
+as, many files called program dot c; even
+for a given user.We first need to understand
+
+146
+00:12:17,019 --> 00:12:23,220
+what a tree is. We have not seen this word
+before in this course, but as I had mentioned,
+
+147
+00:12:23,220 --> 00:12:27,850
+the idea of this tree structured hierarchy
+of directories is what one finds in Unix and
+
+148
+00:12:27,850 --> 00:12:30,050
+Linux systems today.
+
+149
+00:12:30,050 --> 00:12:35,160
+So, what then is a tree. To properly understand
+what a tree structured directory hierarchy
+
+150
+00:12:35,160 --> 00:12:41,360
+is, we need to understand what a tree is.
+The other terms we have seen before. Now,
+
+151
+00:12:41,360 --> 00:12:45,769
+tree should be viewed as being a kind of a
+data structure and you will recall that, we
+
+152
+00:12:45,769 --> 00:12:49,819
+have seen other data structures. The data
+structures that we have seen so far, were
+
+153
+00:12:49,819 --> 00:12:54,339
+things like the stack, we have seen other
+data structures too.
+
+154
+00:12:54,339 --> 00:13:00,720
+We saw the idea of the list; link list as
+being a data structure and so on. So, the
+
+155
+00:13:00,720 --> 00:13:05,240
+tree is to be viewed as being another kind
+of a data structure or collection of data
+
+156
+00:13:05,240 --> 00:13:11,339
+and the corresponding operations on the data.
+Now, typically when you think of a tree, you
+
+157
+00:13:11,339 --> 00:13:15,499
+think of the tree in nature and this is a
+diagram sort of like a tree in nature. This
+
+158
+00:13:15,499 --> 00:13:18,550
+is the bottom part, the trunk of the tree.
+
+159
+00:13:18,550 --> 00:13:25,550
+Then, these are the branches of the tree and
+leaves all over the tree. So, the diagram
+
+160
+00:13:26,399 --> 00:13:29,829
+that I have drawn is one, which corresponds
+to the picture of tree that you have, when
+
+161
+00:13:29,829 --> 00:13:36,829
+you think about nature. But more specifically,
+what we need to understand from this diagram
+
+162
+00:13:44,949 --> 00:13:50,160
+is that, this is a structure which may get
+its name from the similarity, from the parent
+
+163
+00:13:50,160 --> 00:13:53,899
+similarity to the tree in nature. But very
+clearly, it is showing some structure that
+
+164
+00:13:53,899 --> 00:13:57,360
+we need to understand better. So, in terms
+of some terminology, you will notice that
+
+165
+00:13:57,360 --> 00:14:04,040
+I have used two structures in creating this;
+two kinds of objects in creating this tree
+
+166
+00:14:04,040 --> 00:14:08,540
+in this drawing.
+First, there are the brown circles and there
+
+167
+00:14:08,540 --> 00:14:15,540
+are the arrowed, I am sorry, the lines, the
+directed lines are arrows. And in general,
+
+168
+00:14:16,730 --> 00:14:22,939
+you could talk of the brown circles as the
+nodes or the vertices of the tree. The singular
+
+169
+00:14:22,939 --> 00:14:28,939
+of the vertices is vertex. So, I use the word
+vertex or node. Still, a tree is made up of
+
+170
+00:14:28,939 --> 00:14:33,839
+nodes or vertices and the nodes or vertices,
+these are synonyms, I will use the word node
+
+171
+00:14:33,839 --> 00:14:38,550
+from now on. So, the nodes of the tree are
+connected to each other by these directed
+
+172
+00:14:38,550 --> 00:14:44,720
+arrows, by these direct lines which are called
+edges. So, we will talk about the nodes and
+
+173
+00:14:44,720 --> 00:14:48,649
+the edges of a tree.
+Now, the thing to note is that, a particular
+
+174
+00:14:48,649 --> 00:14:54,819
+edge goes from one node to another node. For
+example, this particular edge goes from the
+
+175
+00:14:54,819 --> 00:15:00,949
+node at the bottom to the node just above
+it on the right side, and the terminology
+
+176
+00:15:00,949 --> 00:15:07,170
+which we will use is to talk about an edge
+going from a parent to a child node.
+
+177
+00:15:07,170 --> 00:15:12,129
+So, in this particular example, as far as
+this edge is concerned, I would refer to the
+
+178
+00:15:12,129 --> 00:15:18,959
+edge of the node at the bottom as the parent
+of the node to which the arrow points. So,
+
+179
+00:15:18,959 --> 00:15:23,439
+the tree is describing this parent-child relationship
+between nodes.
+
+180
+00:15:23,439 --> 00:15:26,889
+Notice that, a single parent can have multiple
+children. For example, the node at the bottom
+
+181
+00:15:26,889 --> 00:15:32,089
+has three children and there could be some
+nodes which do not have any children. For
+
+182
+00:15:32,089 --> 00:15:34,540
+example, this node over here, does not have
+any children.
+
+183
+00:15:34,540 --> 00:15:39,069
+So, they are certain properties associated
+with the tree. But the tree is showing us
+
+184
+00:15:39,069 --> 00:15:45,879
+some kind of hierarchy and the hierarchy that
+is shown here, relates very much to the kinds
+
+185
+00:15:45,879 --> 00:15:50,089
+of hierarchies we talked about before; you
+could view this tree as being capable of describing
+
+186
+00:15:50,089 --> 00:15:54,809
+a business hierarchy, for example, this could
+be the CEO, this could be the three vice-presidents
+
+187
+00:15:54,809 --> 00:16:00,069
+and so on. So, in some sense, the structure
+of the trees, not something that we are that
+
+188
+00:16:00,069 --> 00:16:06,079
+the similar unfamiliar with. Now, in sense
+of further terminology, one property of the
+
+189
+00:16:06,079 --> 00:16:13,079
+tree is that the tree has a unique node or
+a single node which does not have a parent.
+
+190
+00:16:14,329 --> 00:16:18,100
+And if you look at our particular tree, the
+node at the bottom is the only node in this
+
+191
+00:16:18,100 --> 00:16:21,459
+tree that does not have a parent.
+In other words, it does not have an arrow
+
+192
+00:16:21,459 --> 00:16:26,499
+pointing at it. If it had a parent, then there
+would have been other node which had an arrow
+
+193
+00:16:26,499 --> 00:16:30,040
+pointing at it and I would refer to the new
+node as being the parent of this particular
+
+194
+00:16:30,040 --> 00:16:34,790
+node. But in the node that we have, there
+is no such situation and the node which does
+
+195
+00:16:34,790 --> 00:16:38,369
+not have a parent, the single node in the
+tree which does not have a parent is called
+
+196
+00:16:38,369 --> 00:16:43,149
+the root node. So, I could, we could refer
+to it as the root, in general.
+
+197
+00:16:43,149 --> 00:16:46,360
+So, the kinds of trees that we are talking
+about have a single root and then they have
+
+198
+00:16:46,360 --> 00:16:50,959
+multiple other nodes; each of which has a
+parent-child relationship with one of the
+
+199
+00:16:50,959 --> 00:16:57,759
+other nodes in the tree. In terms of further
+terminology, they are, as I said, there are
+
+200
+00:16:57,759 --> 00:17:03,779
+some of the nodes in the tree which do not
+have any children such as this node or in
+
+201
+00:17:03,779 --> 00:17:07,709
+fact, all of these nodes, none of them has
+a child. And this is another node which does
+
+202
+00:17:07,709 --> 00:17:11,490
+not have a child. So, all of those nodes,
+what they have in common is that, they do
+
+203
+00:17:11,490 --> 00:17:16,929
+not have any children and we would refer to
+such nodes as the leaf nodes or the leaves
+
+204
+00:17:16,929 --> 00:17:21,439
+of the tree.
+And once again, in terms of our understanding
+
+205
+00:17:21,439 --> 00:17:28,199
+of the biological relationship between the
+terminology and the tree in nature, the node
+
+206
+00:17:28,199 --> 00:17:32,419
+at the bottom, in some sense, it is easy to
+understand why it is called the root node
+
+207
+00:17:32,419 --> 00:17:36,440
+because, the tree in nature has roots which
+go into the ground and that is why the tree
+
+208
+00:17:36,440 --> 00:17:40,429
+starts. So, referring to that, the tree, the
+node which does not have any parent as the
+
+209
+00:17:40,429 --> 00:17:45,100
+root node makes a lot of sense. By the same
+token, referring to the nodes which are at
+
+210
+00:17:45,100 --> 00:17:49,899
+the very top and which do not have any more
+children as the leaf nodes make sense. Because
+
+211
+00:17:49,899 --> 00:17:55,340
+there are branches in a biological tree in
+nature, but the branches may have leaves on
+
+212
+00:17:55,340 --> 00:17:59,059
+them. But beyond the leaf, there is nothing
+corresponding to a structure belonging to
+
+213
+00:17:59,059 --> 00:18:03,080
+the tree.
+So, the idea of leaf nodes and the root node,
+
+214
+00:18:03,080 --> 00:18:08,950
+the idea of the tree being made up of nodes
+and edges is what we will work with. Now in
+
+215
+00:18:08,950 --> 00:18:15,950
+practice, when drawing trees in the context
+of computer related phenomenon, in other words,
+
+216
+00:18:16,090 --> 00:18:20,460
+in talking about the use of this kind of a
+tree hierarchy in computers, one typically
+
+217
+00:18:20,460 --> 00:18:24,960
+draws the tree the other way around. In other
+words, rather than showing the root at the
+
+218
+00:18:24,960 --> 00:18:30,120
+bottom and the leaves at the top which is
+what one see is a nature, its more often done
+
+219
+00:18:30,120 --> 00:18:36,070
+to draw the root at the top and the leaves
+at the bottom. And once again, this relates
+
+220
+00:18:36,070 --> 00:18:39,659
+better to our understanding of the use of
+hierarchy.
+
+221
+00:18:39,659 --> 00:18:44,899
+We logically start by looking at something
+from the top and since the root that the tree
+
+222
+00:18:44,899 --> 00:18:49,779
+starts from the root, it makes more sense
+to draw the tree having the root at the top.
+
+223
+00:18:49,779 --> 00:18:54,899
+So, here the analogy with nature sort of breaks
+because, one does not in nature, find trees
+
+224
+00:18:54,899 --> 00:18:58,890
+which have their roots at the top and the
+leaves at the bottom. Let us perfectly, we
+
+225
+00:18:58,890 --> 00:19:03,250
+will continue. From this point on, we will
+assume that will see trees which are drawn
+
+226
+00:19:03,250 --> 00:19:08,000
+in this way; the root at the top and the leaves
+lower down. The other nodes of the tree, by
+
+227
+00:19:08,000 --> 00:19:12,330
+the way, could be referred to as, intermediate
+nodes of the tree.
+
+228
+00:19:12,330 --> 00:19:18,230
+Now, what is the idea of a tree structured
+directory hierarchy ? We understand what a
+
+229
+00:19:18,230 --> 00:19:22,740
+tree is. So, we understand what it means to
+be structured like a tree and we see that
+
+230
+00:19:22,740 --> 00:19:28,440
+the tree is defining some kind of a hierarchy.
+But how do the directories enter the picture?
+
+231
+00:19:28,440 --> 00:19:33,820
+Remember that, the term directories here,
+referring to the mechanism that is used by
+
+232
+00:19:33,820 --> 00:19:39,140
+the operating system, the file system in particular,
+to keep track of the mappings between file
+
+233
+00:19:39,140 --> 00:19:43,480
+names and file descriptors.
+So, directory is something which maps file
+
+234
+00:19:43,480 --> 00:19:47,899
+names to file descriptors. Now, the idea which
+would be used in the tree structured directory
+
+235
+00:19:47,899 --> 00:19:54,899
+hierarchy is that the directories themselves
+may be stored on disk, may be similar to the
+
+236
+00:19:56,289 --> 00:20:00,450
+way that regular files are stored on the disk.
+Remember that, a directory has to contain
+
+237
+00:20:00,450 --> 00:20:07,120
+information. What information it contains;
+information about a name to file descriptor
+
+238
+00:20:07,120 --> 00:20:12,450
+mapping. This is the form of data just like
+a file, a text file which you create or program
+
+239
+00:20:12,450 --> 00:20:17,690
+dot c file that you create contains information
+such as the text of a program or at the numbers
+
+240
+00:20:17,690 --> 00:20:21,750
+that have to be read in by a program.
+A directory too contains information. The
+
+241
+00:20:21,750 --> 00:20:25,639
+information happens to be for each name, the
+corresponding file descriptor and this may
+
+242
+00:20:25,639 --> 00:20:30,080
+not be information that a user program is
+going to be is going to used. But it is information
+
+243
+00:20:30,080 --> 00:20:34,220
+that could be stored in something like a file.
+So, that is an interesting idea; the idea
+
+244
+00:20:34,220 --> 00:20:39,399
+that the directories themselves, in other
+words, the mappings between file names and
+
+245
+00:20:39,399 --> 00:20:44,720
+file descriptors could be stored on disks,
+may be very much like regular files. So, what
+
+246
+00:20:44,720 --> 00:20:49,549
+does the directory file contain? I could refer
+to it as a directory file now. The directory
+
+247
+00:20:49,549 --> 00:20:56,200
+as a file, would now contain pairs of file
+names and file descriptors. And here, I am
+
+248
+00:20:56,200 --> 00:21:00,870
+referring to the file descriptor by the term
+index node. You will remember that, in the
+
+249
+00:21:00,870 --> 00:21:06,740
+case of Unix or Linux, the file descriptor
+takes the form of an index and hence the term
+
+250
+00:21:06,740 --> 00:21:13,740
+index node. So, each of the directories could
+contain many filename, index node pairs.
+
+251
+00:21:15,720 --> 00:21:22,649
+Now, in addition. in the case of the Unix
+and Linux type file tree structured directory
+
+252
+00:21:22,649 --> 00:21:29,649
+hierarchies, each directory contains an entry
+with the name dot. So, this is just a dot
+
+253
+00:21:31,010 --> 00:21:37,659
+and that entry stands for the directory itself.
+So, in order for a directory to keep track
+
+254
+00:21:37,659 --> 00:21:42,110
+of information about itself, given that the
+file, the directory itself is something like
+
+255
+00:21:42,110 --> 00:21:47,659
+a file and entry is maintained within the
+directory for itself as well. And that directory,
+
+256
+00:21:47,659 --> 00:21:54,659
+that entry need not have a name since a directory
+itself has a name. But within the directory,
+
+257
+00:21:54,700 --> 00:22:00,789
+its name is not relevant. Therefore, it is
+just represented by an entry with a name dot.
+
+258
+00:22:00,789 --> 00:22:05,600
+In addition to this, since we are talking
+about a tree structured directory hierarchy,
+
+259
+00:22:05,600 --> 00:22:09,419
+suggestion is that, there would be one node
+in the directory hierarchy which is right
+
+260
+00:22:09,419 --> 00:22:14,730
+at the top and that node is going to be the
+root of the directory hierarchy. But other
+
+261
+00:22:14,730 --> 00:22:19,799
+than that, that need not have a name. And
+therefore, in Unix and Linux systems, the
+
+262
+00:22:19,799 --> 00:22:26,799
+root of the directory hierarchy tree is actually
+a nameless directory. And being a nameless
+
+263
+00:22:27,320 --> 00:22:30,510
+directory, it still has to be referred by
+a name.
+
+264
+00:22:30,510 --> 00:22:34,340
+One cannot just refer to it as the nameless
+directory, but it is typically referred to
+
+265
+00:22:34,340 --> 00:22:39,320
+as the root. Standing for the root of the
+directory hierarchy. So,that is actually a
+
+266
+00:22:39,320 --> 00:22:43,419
+functional name; it has to be the root of
+the directory hierarchy. Its name is not root.
+
+267
+00:22:43,419 --> 00:22:49,220
+in other words, one will not find the name
+r o o t root present in a directory referring
+
+268
+00:22:49,220 --> 00:22:55,960
+to a particular directory. Therefore, in general,
+one should understand that the nameless directory
+
+269
+00:22:55,960 --> 00:23:00,000
+which at the top of the directory hierarchy,
+we will refer to it as the root.
+
+270
+00:23:00,000 --> 00:23:04,639
+Now, what is the hierarchy of directories
+that we are talking about? Very clearly, we
+
+271
+00:23:04,639 --> 00:23:10,730
+are talking about a situation where itself
+is a mapping between names and file descriptors
+
+272
+00:23:10,730 --> 00:23:17,730
+and a directory is stored as a file, something
+like a file.
+
+273
+00:23:17,909 --> 00:23:24,909
+Therefore, there will be an entry for any
+particular director in another directory which
+
+274
+00:23:25,090 --> 00:23:29,760
+happens to have a parent relationship with
+a directory that we are talking about. Hence
+
+275
+00:23:29,760 --> 00:23:35,149
+this notion of a directory hierarchy that
+have directory which contains an entry for
+
+276
+00:23:35,149 --> 00:23:40,450
+another directories name, in turn the directory,
+the second directory could have an entry for
+
+277
+00:23:40,450 --> 00:23:44,279
+another directories and hence there is a tree
+structured relationship between the different
+
+278
+00:23:44,279 --> 00:23:49,279
+directories.
+So, what this boils down to then is, in order
+
+279
+00:23:49,279 --> 00:23:55,630
+to refer to any particular file by name, one
+could actually start with the root directory,
+
+280
+00:23:55,630 --> 00:23:59,809
+the nameless directory at the very root of
+the entire directory hierarchy and then go
+
+281
+00:23:59,809 --> 00:24:05,950
+down the different directories until one comes
+to the file that one is referring to, and
+
+282
+00:24:05,950 --> 00:24:09,860
+the pathway through which one goes through
+the directory hierarchy could be referred
+
+283
+00:24:09,860 --> 00:24:15,039
+to as the pathname of the file.
+The file itself would be a leaf node in the
+
+284
+00:24:15,039 --> 00:24:19,490
+directory hierarchy. Let us just look at an
+example to understand what this means. Typically,
+
+285
+00:24:19,490 --> 00:24:25,049
+in constructing the pathname, one separates
+the sequence of directories by slashes and
+
+286
+00:24:25,049 --> 00:24:30,149
+so, I would refer to a pathname is being a
+slash separated sequence of directory names.
+
+287
+00:24:30,149 --> 00:24:34,820
+Remember, we talke about a directory is having
+a name, simply because a directory itself
+
+288
+00:24:34,820 --> 00:24:40,450
+stored on a disk like a regular file and must
+therefore have a name other than of course,
+
+289
+00:24:40,450 --> 00:24:43,500
+special nameless directory which is called
+the root.
+
+290
+00:24:43,500 --> 00:24:48,380
+So, going back to a picture of a tree, let
+us try to understand how this could relate
+
+291
+00:24:48,380 --> 00:24:53,210
+to a directory hierarchy. Now, the situation
+that we should have here is, we should clearly
+
+292
+00:24:53,210 --> 00:25:00,210
+understand that each of the nodes in this
+tree is going to correspond to a file.
+
+293
+00:25:00,330 --> 00:25:05,519
+Now, some of these nodes are going to correspond
+to files that are in fact directories, in
+
+294
+00:25:05,519 --> 00:25:11,470
+other words, files that contain mapping is
+between names and file descriptors or I node
+
+295
+00:25:11,470 --> 00:25:16,320
+numbers. Some of the other files in the hierarchy
+are going to be files containing data that
+
+296
+00:25:16,320 --> 00:25:21,669
+user can use. And as you would imagine, any
+of the intermediate nodes in the directory
+
+297
+00:25:21,669 --> 00:25:26,269
+is going to be a directory in that. I am sorry,
+any intermediate node in the hierarchy it
+
+298
+00:25:26,269 --> 00:25:32,220
+is going to be a directory and it is the leaf
+nodes in this hierarchy which are going to
+
+299
+00:25:32,220 --> 00:25:38,320
+be the data containing files. So, if I associated
+a name with everyone of these nodes and I
+
+300
+00:25:38,320 --> 00:25:44,350
+am using simple names just for ease of a typing,
+this particular node, I am calling node a.
+
+301
+00:25:44,350 --> 00:25:49,460
+Remember, every file could be a data containing
+file or it could be directory, must have a
+
+302
+00:25:49,460 --> 00:25:52,250
+name.
+So, the name of this particular file is a.
+
+303
+00:25:52,250 --> 00:25:57,940
+I have used names going form a to o for this
+particular example. At the top, we have that
+
+304
+00:25:57,940 --> 00:26:04,299
+special nameless node of the directory hierarchy
+tree which is why I do not have a name associated
+
+305
+00:26:04,299 --> 00:26:08,389
+with it. But we will refer, we have to have
+a name to refer to it in discussing it. So,
+
+306
+00:26:08,389 --> 00:26:11,960
+I will just include the word root there. But
+just note that, that is not the name of that
+
+307
+00:26:11,960 --> 00:26:16,649
+node, it just happens to be what we call that
+node. Hence, I have put it in italicize font.
+
+308
+00:26:16,649 --> 00:26:21,299
+It is not technically a name associated with
+that node, it is just what we are going to
+
+309
+00:26:21,299 --> 00:26:28,299
+refer to that node as. So, let us just consider,
+the directory corresponding to that root node.
+
+310
+00:26:30,190 --> 00:26:34,639
+Remember what I mean by a directory; this
+is something like a file and what that file
+
+311
+00:26:34,639 --> 00:26:40,100
+contains is mapping between file names or
+directory names and file descriptors.
+
+312
+00:26:40,100 --> 00:26:44,289
+So, let us look at the directory corresponding
+to the root node. What would we expect to
+
+313
+00:26:44,289 --> 00:26:51,000
+see in that directory. We might expect to
+see something like this. So, it is a file
+
+314
+00:26:51,000 --> 00:26:54,679
+or its it is a short on disk and contains
+information and the information happens to
+
+315
+00:26:54,679 --> 00:27:01,679
+be in the form of pairs of names and file
+descriptors or file descriptor numbers in
+
+316
+00:27:02,169 --> 00:27:04,690
+this case.
+So, the file descriptors themselves may be
+
+317
+00:27:04,690 --> 00:27:09,519
+stored somewhere else and these are referring
+to the names or the numbers of the corresponding
+
+318
+00:27:09,519 --> 00:27:15,389
+file descriptor. So, in this particular directory,
+we find out that there is an entry for each
+
+319
+00:27:15,389 --> 00:27:20,149
+of the files or directories which is in the
+next level of the hierarchy. So, there is
+
+320
+00:27:20,149 --> 00:27:25,750
+an entry for a. There is an entry for b and
+there is an entry for c. And the entry corresponds,
+
+321
+00:27:25,750 --> 00:27:30,330
+the corresponding entry contains the name
+of that file or directory, as well as information
+
+322
+00:27:30,330 --> 00:27:36,860
+about where that file or directory is contained
+on the disk in the form of the number of the
+
+323
+00:27:36,860 --> 00:27:42,470
+index node corresponding to that file. In
+addition on the previous slide, every directory
+
+324
+00:27:42,470 --> 00:27:49,120
+will contain an entry called dot for itself.
+So, the entry called dot will correspond to
+
+325
+00:27:49,120 --> 00:27:54,480
+the root directory and it tells me that, the
+information containing the root directory
+
+326
+00:27:54,480 --> 00:28:01,480
+is contained in index node number 13. Therefore,
+the actual information about where this information
+
+327
+00:28:01,990 --> 00:28:05,620
+is contained is available in index node number
+13.
+
+328
+00:28:05,620 --> 00:28:10,000
+So, this is the idea of the tree structured
+directory hierarchy and just to make sure
+
+329
+00:28:10,000 --> 00:28:15,740
+we understand what the pathname is, if you
+refer to, let say the file down at the bottom
+
+330
+00:28:15,740 --> 00:28:22,740
+which I called o; file o down at the bottom,
+then if I try to trace its complete path from
+
+331
+00:28:23,720 --> 00:28:27,820
+the root directory, then I would say that,
+if at the root directory, I had to take the
+
+332
+00:28:27,820 --> 00:28:34,700
+branch going through c.From c, I had to take
+the branch going to h; I separate the branches
+
+333
+00:28:34,700 --> 00:28:39,019
+by slashes and from h, I have to take a branch
+which takes me to o.
+
+334
+00:28:39,019 --> 00:28:45,639
+I started this whole thing from root which
+is a nameless directory. So, there is nothing
+
+335
+00:28:45,639 --> 00:28:50,909
+before the first slash. In order to go to
+this particular file, I look into the root
+
+336
+00:28:50,909 --> 00:28:57,370
+directory, I find the entry called c which
+tells me that, the information relating to
+
+337
+00:28:57,370 --> 00:29:00,649
+this particular file must be further persued
+in the directory called c.
+
+338
+00:29:00,649 --> 00:29:04,440
+So, I open up the directory called c. If I
+am trying to find out the information about
+
+339
+00:29:04,440 --> 00:29:10,320
+where the disk blocks of the file o are contained,
+I open up the file called c and look into
+
+340
+00:29:10,320 --> 00:29:15,860
+that for another entry relating to the directory
+h and so on. It is the pretty much what the
+
+341
+00:29:15,860 --> 00:29:20,120
+file system has to do. And this provides a
+mechanism through which, complete pathnames
+
+342
+00:29:20,120 --> 00:29:25,409
+can be used to identify files, starting from
+the unique root directory. Now, there are
+
+343
+00:29:25,409 --> 00:29:30,649
+many possibilities as to how this could be
+used. For example, the person who is administering
+
+344
+00:29:30,649 --> 00:29:37,649
+your system might provide different users
+with directories at the second level. So,
+
+345
+00:29:37,960 --> 00:29:42,620
+a might be the first user, b might be the
+second user and c might be the third user.
+
+346
+00:29:42,620 --> 00:29:47,440
+Subsequently, each of the users could create
+their own subdirectories. In other words,
+
+347
+00:29:47,440 --> 00:29:51,379
+within their region of the directory hierarchy,
+they can create directories to their liking.
+
+348
+00:29:51,379 --> 00:29:58,090
+For example, user b may have created a subdirectory
+called f and a subdirectory called g, corresponding
+
+349
+00:29:58,090 --> 00:30:03,090
+may be to the two courses that that user is
+doing. And in each of these two subdirectories,
+
+350
+00:30:03,090 --> 00:30:08,299
+I could be a file and the two files could
+actually have same both of these files. I
+
+351
+00:30:08,299 --> 00:30:11,950
+have called 1 l and I have called 1 m.
+But both of them could just as well have been
+
+352
+00:30:11,950 --> 00:30:16,509
+called program dot c. How would the operating
+system differ between these two program dot
+
+353
+00:30:16,509 --> 00:30:23,509
+c is by the fact that, one of them has a pathname,
+slash b slash f slash program dot c; that
+
+354
+00:30:24,470 --> 00:30:31,470
+is this one. And the other one has a pathname,
+slash b slash g slash program dot c. So, even
+
+355
+00:30:33,649 --> 00:30:38,350
+though both of the files they seem to have
+the name program dot c, they are unique in
+
+356
+00:30:38,350 --> 00:30:43,600
+that if I look at the entire pathname. The
+pathnames are different. And with this mechanism,
+
+357
+00:30:43,600 --> 00:30:48,720
+it is possible for many of the problems that
+we saw with a two earlier directory hierarchy
+
+358
+00:30:48,720 --> 00:30:51,480
+ideas,I am sorry,the directory ideas to be
+overcome.
+
+359
+00:30:51,480 --> 00:30:58,480
+So, this is a commonly used idea in Unix and
+Linux style maintenance of directory information
+
+360
+00:30:59,960 --> 00:31:06,809
+in Unixand Linux. Now, with this, we have
+seen pretty much what is happening in Unix
+
+361
+00:31:06,809 --> 00:31:12,379
+and Linux systems from disk management. The
+idea of the indexed allocation using a fixed
+
+362
+00:31:12,379 --> 00:31:16,899
+size index node, we have seen that there is
+the idea of the tree structured directory
+
+363
+00:31:16,899 --> 00:31:22,649
+hierarchy and the important concept of pathnames
+and how there could be directories which contain
+
+364
+00:31:22,649 --> 00:31:27,320
+information about the mapping between file
+names and file descriptors.
+
+365
+00:31:27,320 --> 00:31:33,080
+And just as a small aside, I should mention
+that, now that we know that directories are
+
+366
+00:31:33,080 --> 00:31:38,100
+stored on disk very much like files, it may
+be interesting to try and see whether, you
+
+367
+00:31:38,100 --> 00:31:44,519
+as a user, can open a directory just as you
+can open a file, whether you can open a directory
+
+368
+00:31:44,519 --> 00:31:48,309
+and read the contents of the directory. It
+might be too much to expect to be able to
+
+369
+00:31:48,309 --> 00:31:52,210
+modify the contents of the directory. But
+it may be possible for you to try to write
+
+370
+00:31:52,210 --> 00:31:56,600
+the program that tries to open a directory
+and read the contents of the directory. And
+
+371
+00:31:56,600 --> 00:32:00,350
+if you can do this, then you should be able
+to write a program, such as the l s program
+
+372
+00:32:00,350 --> 00:32:05,950
+that we heard about, one or two lectures ago.
+What the l s program does is, it produces
+
+373
+00:32:05,950 --> 00:32:08,669
+a listing of the contents of the current directory
+
+374
+00:32:08,669 --> 00:32:15,019
+Therefore, it should be conceivable to write
+such an l s program, if one can open a directory
+
+375
+00:32:15,019 --> 00:32:21,379
+and readout its contents and just print them
+out on the screen. Now, we can now move on
+
+376
+00:32:21,379 --> 00:32:28,080
+to the third important aspect of file system
+design. And that relates to protection. And
+
+377
+00:32:28,080 --> 00:32:34,450
+specifically, by talking about what mechanisms
+are available to protect files from users;
+
+378
+00:32:34,450 --> 00:32:38,070
+to protect the files of one user from another
+user.
+
+379
+00:32:38,070 --> 00:32:44,690
+Now, why it does one need to protect the files
+of one user from another user? Now, the reason
+
+380
+00:32:44,690 --> 00:32:49,529
+that one is to do this is to prevent any misuse
+of the files within the file system and the
+
+381
+00:32:49,529 --> 00:32:55,289
+misuse could be accidental or could be intentional.
+But I mean by accidental is, if I, as a user,
+
+382
+00:32:55,289 --> 00:33:00,879
+and I am able to access files of yours, then
+I could accidentally delete such a file. Many
+
+383
+00:33:00,879 --> 00:33:07,879
+of you are familiar with the Unix r m command
+to remove a file and some of you may even
+
+384
+00:33:08,179 --> 00:33:12,370
+have been in the situation where you accidentally
+removed one of your own files by just typing
+
+385
+00:33:12,370 --> 00:33:16,129
+r m on the file.
+Now, things could be even worse if I could
+
+386
+00:33:16,129 --> 00:33:20,940
+accidentally remove files of other users.
+Similarly, there is a danger that there could
+
+387
+00:33:20,940 --> 00:33:27,470
+be some intentional attempt to misuse files.
+Example, to either steal the contents of somebody's
+
+388
+00:33:27,470 --> 00:33:32,889
+file, misuse them in that form or to modify
+the contents of somebody else file and this
+
+389
+00:33:32,889 --> 00:33:36,299
+is clearly something that a file system should
+be designed to prevent.
+
+390
+00:33:36,299 --> 00:33:41,889
+Now, any protection mechanism will have a
+few common aspects to it. I am going to talk
+
+391
+00:33:41,889 --> 00:33:47,820
+about each of these aspects a little bit.
+The first thing is, we have this clear understanding
+
+392
+00:33:47,820 --> 00:33:54,789
+that, we are going to associate a file with
+a user and one talks about a file belonging
+
+393
+00:33:54,789 --> 00:33:59,610
+to a user. Hence, the first step in any kind
+of a protection mechanism must be to identify
+
+394
+00:33:59,610 --> 00:34:06,610
+or to figure out who a particular user is.
+When a program is being run, one assumes that
+
+395
+00:34:06,669 --> 00:34:09,440
+the program is associated with a particular
+user.
+
+396
+00:34:09,440 --> 00:34:14,470
+But the operating system must somehow associate
+the execution of the program with a particular
+
+397
+00:34:14,470 --> 00:34:18,820
+user and must make sure that, the programmers
+in fact, started or the execution of that
+
+398
+00:34:18,820 --> 00:34:22,830
+program was initiated by that particular user.
+Therefore there is a need to do something
+
+399
+00:34:22,830 --> 00:34:29,700
+called user identification or authentication.
+Actually, verifying that the user claiming
+
+400
+00:34:29,700 --> 00:34:36,700
+to be, let say, user one is in fact, user
+one. Now, essentially the objective of authentication
+
+401
+00:34:37,329 --> 00:34:42,919
+is to establish that the user is, whoever
+he or she claims to be. If one did not have
+
+402
+00:34:42,919 --> 00:34:46,720
+user authentication then, a person could just
+come to a computer system and start claiming
+
+403
+00:34:46,720 --> 00:34:51,159
+to be the administrator of the system and
+do all kinds of things on the system. Therefore,
+
+404
+00:34:51,159 --> 00:34:54,839
+authentication is very clearly an important
+part of any protection mechanism.
+
+405
+00:34:54,839 --> 00:34:58,550
+Now, you may ask how could authentication
+be done and some of you will be familiar with
+
+406
+00:34:58,550 --> 00:35:05,300
+one of the commonly used mechanisms for authentication;
+and that is the use of user ids and passwords.
+
+407
+00:35:05,300 --> 00:35:10,609
+So, the idea here is that, whenever a new
+account is created for a user, the user is
+
+408
+00:35:10,609 --> 00:35:16,930
+asked to provide a password,password code
+that will be remembered by the computer system
+
+409
+00:35:16,930 --> 00:35:21,980
+and used by the user; in return, the user
+tries to log in to the computer system. Subsequently,
+
+410
+00:35:21,980 --> 00:35:26,500
+when the user does login to the computer system,
+you will be, he or she will be asked to provide
+
+411
+00:35:26,500 --> 00:35:32,640
+the user id as well as the password. And the
+computer system can then verify. The computer
+
+412
+00:35:32,640 --> 00:35:37,569
+system will have to store the passwords securely.
+But the computer system can then check whether
+
+413
+00:35:37,569 --> 00:35:41,680
+the password has typed in by the user is the
+same as the password as remembered in the
+
+414
+00:35:41,680 --> 00:35:46,440
+computer system. If they match, this can be
+used as confirmation that the user is who
+
+415
+00:35:46,440 --> 00:35:51,930
+he or she claims to be. Now, it is of course
+important that, the passwords be stored securely.
+
+416
+00:35:51,930 --> 00:35:55,829
+You will note that the passwords himself will
+probably have to be stored in a file. They
+
+417
+00:35:55,829 --> 00:36:01,720
+cannot be stored in main memory. Because they
+must survive beyond the life time of one program.
+
+418
+00:36:01,720 --> 00:36:06,040
+And if that is going to be stored in a file
+in a haphazard way, then any of the users
+
+419
+00:36:06,040 --> 00:36:11,530
+currently on the system would be able to open
+and read the password file and therefore,
+
+420
+00:36:11,530 --> 00:36:14,369
+all the passwords would then become common
+knowledge and so on.
+
+421
+00:36:14,369 --> 00:36:19,290
+So very clearly, some mechanisms for making
+sure that the passwords are stored securely
+
+422
+00:36:19,290 --> 00:36:23,470
+will have to be ensured such as encryption
+or something along those lines. Now, there
+
+423
+00:36:23,470 --> 00:36:29,180
+are other more recently, there have been other
+different kinds of ideas for doing user authentication
+
+424
+00:36:29,180 --> 00:36:34,690
+based on other ideas other than password.
+And you may have heard of some of these which
+
+425
+00:36:34,690 --> 00:36:39,369
+are known as biometrics. For example, many
+of the laptops that you may be using, may
+
+426
+00:36:39,369 --> 00:36:44,730
+actually have mechanisms through which one
+can record and display ones fingerprint and
+
+427
+00:36:44,730 --> 00:36:49,380
+fingerprint information could actually be
+used for authentication. If this kind of a
+
+428
+00:36:49,380 --> 00:36:53,400
+biometric is used for authentication, then
+when you attempt to login into the computer
+
+429
+00:36:53,400 --> 00:36:59,059
+system, you would be asked to put your, one
+of the finger which fingerprint had been recorded,
+
+430
+00:36:59,059 --> 00:37:02,329
+onto the fingerprint reader, on the on that
+laptop.
+
+431
+00:37:02,329 --> 00:37:06,619
+It would be then compared with the stored
+version of your fingerprint and if there was
+
+432
+00:37:06,619 --> 00:37:10,440
+adequate correspondence, this would be viewed
+as authenticating you as the user who you
+
+433
+00:37:10,440 --> 00:37:16,059
+claim to be. So, this is similar to the password,
+in that there, it is a secret stored on the
+
+434
+00:37:16,059 --> 00:37:20,480
+computer and available only to the user. But
+unlike the password which is something that
+
+435
+00:37:20,480 --> 00:37:25,710
+one has to remember, the fingerprint is biological
+reality as far as the individual is concerned
+
+436
+00:37:25,710 --> 00:37:30,920
+and very difficult for somebody else to replicate.
+Other ideas which are use today are based
+
+437
+00:37:30,920 --> 00:37:37,230
+on the iris. The iris of the eye and iris
+device which could be used to check the iris
+
+438
+00:37:37,230 --> 00:37:41,170
+properties of the individual who is currently
+trying to login to the computer system, compare
+
+439
+00:37:41,170 --> 00:37:45,890
+those with these stored facts known about
+the iris properties of that particular user
+
+440
+00:37:45,890 --> 00:37:51,690
+and using this for authentication.
+So, this of course is important to note that,
+
+441
+00:37:51,690 --> 00:37:56,210
+if passwords are being used, one must of course,
+make sure that, the ones password is adequate
+
+442
+00:37:56,210 --> 00:38:00,990
+strength, in order to make it difficult for
+other users or people who are trying to break
+
+443
+00:38:00,990 --> 00:38:07,990
+into a system to misuse ones user id by guessing
+ones password. So, user of the, authentication
+
+444
+00:38:08,240 --> 00:38:13,200
+and identification of the users is an important
+property of any protection mechanism.
+
+445
+00:38:13,200 --> 00:38:19,630
+Now, in other important aspect as far as find
+the system protection is concerned is what
+
+446
+00:38:19,630 --> 00:38:26,329
+is called authorization determination. And
+the problem here is, of the many users on
+
+447
+00:38:26,329 --> 00:38:32,180
+the computer system, for a particular file
+that we are interested in, we have to track;
+
+448
+00:38:32,180 --> 00:38:37,230
+the operating system to keep track of what
+the different users or what a particular users
+
+449
+00:38:37,230 --> 00:38:42,109
+is entitled to do as far as a particular file
+is concerned. And that is what we might refer
+
+450
+00:38:42,109 --> 00:38:47,380
+to as determining what the user is authorized
+to do in connection with a particular file.
+
+451
+00:38:47,380 --> 00:38:53,119
+Now, this itself may seem like a trivial problem.
+But if you think about it a little bit, you
+
+452
+00:38:53,119 --> 00:38:57,589
+will realize that, in order to do this, the
+system, operating system, the file system
+
+453
+00:38:57,589 --> 00:39:04,589
+will have to keep track of what kinds of operations
+each user do for each file and therefore,
+
+454
+00:39:05,930 --> 00:39:09,280
+the amount of information that would have
+to be stored in connection with authorization
+
+455
+00:39:09,280 --> 00:39:14,740
+determination could be substantial. Remember
+that, authorization information would have
+
+456
+00:39:14,740 --> 00:39:21,280
+to be stored for each file. First of all,
+it will have to be stored for each user, but
+
+457
+00:39:21,280 --> 00:39:25,180
+it will have to be stored for each file and
+there could be thousands, millions of files
+
+458
+00:39:25,180 --> 00:39:31,240
+on a computer system. For each of those files,
+information about what privilege, what operations
+
+459
+00:39:31,240 --> 00:39:35,780
+each user could do on that file must be stored.
+So, for each of the million files on a computer
+
+460
+00:39:35,780 --> 00:39:39,980
+system, there would have to be information
+about each of the thousand users on the computer
+
+461
+00:39:39,980 --> 00:39:44,809
+system, it leaving us with a huge amount of
+information that would have to be stored.
+
+462
+00:39:44,809 --> 00:39:48,550
+And therefore,this is not a trivial problem,
+it is a problem of a sizable dimensions in
+
+463
+00:39:48,550 --> 00:39:52,400
+terms of the amount of information that might
+have to be stored unless it is dealt with,
+
+464
+00:39:52,400 --> 00:39:54,119
+in a careful fashion.
+
+465
+00:39:54,119 --> 00:39:59,990
+Now, the way that authorization information
+is stored in the case of the Unix and Linux
+
+466
+00:39:59,990 --> 00:40:04,859
+styles systems is interesting and therefore
+I will go through that. The idea here is,
+
+467
+00:40:04,859 --> 00:40:10,880
+rather than storing information about how
+each of thousands of users would be able to,
+
+468
+00:40:10,880 --> 00:40:14,720
+at the different operations, each of thousands
+of users would be allowed to do on each of
+
+469
+00:40:14,720 --> 00:40:21,280
+millions of files. Unix or Linux manages with
+just nine bits of information and the way
+
+470
+00:40:21,280 --> 00:40:27,380
+that it does this, is by first of all, not
+maintaining information about each user for
+
+471
+00:40:27,380 --> 00:40:33,680
+each file, by dividing the universe of users
+into three sets in connection with the given
+
+472
+00:40:33,680 --> 00:40:38,450
+file. The three sets are first of all, the
+owner of the file and we understand now that,
+
+473
+00:40:38,450 --> 00:40:42,559
+associated with each file, there is going
+to be a particular user who is considered
+
+474
+00:40:42,559 --> 00:40:48,020
+to be the owner of the file. Second group,
+the second set of users that the operating
+
+475
+00:40:48,020 --> 00:40:53,109
+system maintains information about is the
+associates of the owner of the file. In other
+
+476
+00:40:53,109 --> 00:40:57,990
+words, the other users on the system who associate
+with and collaborate with or interact with
+
+477
+00:40:57,990 --> 00:41:02,010
+the owner of the file and this is typically
+referred to as the users who are in the same
+
+478
+00:41:02,010 --> 00:41:06,369
+group as the owner of the file.
+The keyword there is group. The keyword in
+
+479
+00:41:06,369 --> 00:41:12,270
+the first grouping was owner,the keyword in
+the second grouping is group and the third,
+
+480
+00:41:12,270 --> 00:41:16,380
+a set of users that the operating system maintains
+information about, in connection with each
+
+481
+00:41:16,380 --> 00:41:23,380
+file, is what is known as the other users
+or other. So there is owner, there is group
+
+482
+00:41:24,690 --> 00:41:29,140
+and there is others. So, the operating system
+does not maintain information on the basis
+
+483
+00:41:29,140 --> 00:41:33,410
+of each of the thousand users, the operating
+system just maintains information on the basis
+
+484
+00:41:33,410 --> 00:41:37,750
+of these three groupings.
+One set of information for the owner of the
+
+485
+00:41:37,750 --> 00:41:42,130
+file, an other set of information use, as
+in, the group as the file as the owner of
+
+486
+00:41:42,130 --> 00:41:48,200
+the file and third set of information for
+everyone else. What about the actual permission,
+
+487
+00:41:48,200 --> 00:41:53,180
+the actual operations that the user would
+be allow to do on a particular file. The way
+
+488
+00:41:53,180 --> 00:41:58,059
+that Unix or Linux maintains this information
+is by distinguishing between three kinds of
+
+489
+00:41:58,059 --> 00:42:04,950
+operations; the read operation, the write
+operation and the execute operation. Now,
+
+490
+00:42:04,950 --> 00:42:09,900
+you will remember here that, we are talking
+about operations on files and we clearly understand
+
+491
+00:42:09,900 --> 00:42:14,690
+that it may be necessary to read data from
+a file. It may be necessary to write data
+
+492
+00:42:14,690 --> 00:42:20,480
+from a file and to write data to a file. And
+hence, these are clearly well specified operations
+
+493
+00:42:20,480 --> 00:42:26,880
+that we can relate to. But this whole notion
+of having an execute operation on a file is
+
+494
+00:42:26,880 --> 00:42:29,960
+new.
+Up to now, we were thinking a files as being
+
+495
+00:42:29,960 --> 00:42:34,140
+data containing, but we should bear in mind
+that, some of the files that are present on
+
+496
+00:42:34,140 --> 00:42:40,839
+a computer system such as an a dot out file
+will typically not be opened and read or written
+
+497
+00:42:40,839 --> 00:42:45,750
+by a user. On the other hand, they are more
+likely to be executed by a user. And therefore,
+
+498
+00:42:45,750 --> 00:42:51,420
+the execution or running a program has to
+be viewed as being an operation and hence
+
+499
+00:42:51,420 --> 00:42:57,280
+in Unix and Linux systems, there is a separate,
+a third operation for which authorization
+
+500
+00:42:57,280 --> 00:43:01,339
+bits are kept track of, known as the execute
+operation.
+
+501
+00:43:01,339 --> 00:43:07,290
+So, when we put all this together, then figure
+out that, what the Unix linux is doing is
+
+502
+00:43:07,290 --> 00:43:12,910
+that associated with any one file, it is maintaining
+nine bits of information; three of the bits
+
+503
+00:43:12,910 --> 00:43:17,049
+of information relate to the permissions or
+the operations that the owner of the file
+
+504
+00:43:17,049 --> 00:43:24,049
+can do on the file, three of the bits of information
+relate to the operations that in group, as
+
+505
+00:43:25,000 --> 00:43:30,890
+the owner, can do on that particular file
+and the last three bits of information relate
+
+506
+00:43:30,890 --> 00:43:35,619
+to the kinds of operations that any other
+user on the system could do to that particular
+
+507
+00:43:35,619 --> 00:43:39,290
+file. Here, we are talking about the file,
+a dot out for example. What are the three
+
+508
+00:43:39,290 --> 00:43:46,290
+bits? The three bits are permission to read,
+write or execute the file which are typically
+
+509
+00:43:46,849 --> 00:43:48,960
+indicated by r w and x.
+
+510
+00:43:48,960 --> 00:43:53,750
+So, for a particular file, if the owner has
+the permission to read or write or execute
+
+511
+00:43:53,750 --> 00:43:59,589
+the file, one would find those three bits
+set in the collection of information that
+
+512
+00:43:59,589 --> 00:44:04,010
+the operating system is maintaining about
+that particular file. If the members of the
+
+513
+00:44:04,010 --> 00:44:09,030
+same group as the owner are allowed to read
+the file, but not to execute, or to write
+
+514
+00:44:09,030 --> 00:44:13,010
+it, then, one might find only the read bit
+set and the execute and the write bits not
+
+515
+00:44:13,010 --> 00:44:17,859
+set. And if the others, the other users on
+the system are not allowed to do any operations
+
+516
+00:44:17,859 --> 00:44:21,579
+on the file, one might not find any of the
+others bits set.
+
+517
+00:44:21,579 --> 00:44:25,950
+So, among the nine bits in this particular
+example, we find only the first four bits
+
+518
+00:44:25,950 --> 00:44:30,660
+are set. The other five bits are not set and
+subsequently, the operating system could use
+
+519
+00:44:30,660 --> 00:44:35,780
+this storage of authorization information
+relating to the file a dot out, in allowing
+
+520
+00:44:35,780 --> 00:44:41,660
+or not allowing any particular access.
+Now, there are certain other niceties of this
+
+521
+00:44:41,660 --> 00:44:47,470
+which one could think about. For example,
+in addition to the fact that some files contain
+
+522
+00:44:47,470 --> 00:44:52,240
+data, and other files are executable, we have
+this additional complication from our discussion
+
+523
+00:44:52,240 --> 00:44:57,730
+of name management. Some of the files in a
+computer system are actually directories.
+
+524
+00:44:57,730 --> 00:45:03,819
+For example, there is a root directory, there
+are subdirectories associate with each user
+
+525
+00:45:03,819 --> 00:45:09,720
+and so on. And a directory is essentially,
+as we see something like a file, but contains
+
+526
+00:45:09,720 --> 00:45:14,329
+information about the location of other files.
+But a directory in itself, will have to have
+
+527
+00:45:14,329 --> 00:45:18,000
+these protection bits associated with it.
+So, there will be the idea of the owner of
+
+528
+00:45:18,000 --> 00:45:22,849
+a directory and the operations that in owner
+could do on a file which are going to be represented
+
+529
+00:45:22,849 --> 00:45:27,710
+by the read write and execute bits; just as
+for any other file and one could interpret
+
+530
+00:45:27,710 --> 00:45:33,530
+or try to understand with the operating system
+means by reading a directory, writing a directory
+
+531
+00:45:33,530 --> 00:45:38,700
+or executing a directory. It make sense to
+view reading a directory as being able to
+
+532
+00:45:38,700 --> 00:45:43,670
+open and access the entries in the directory.
+So, for example, in order to execute the l
+
+533
+00:45:43,670 --> 00:45:49,099
+s command, one would have to have read permission
+on the corresponding directory. Typically,
+
+534
+00:45:49,099 --> 00:45:54,960
+when one talks about writing as referring
+to modifying the contents of a file, in connection
+
+535
+00:45:54,960 --> 00:45:58,890
+with a directory, therefore one must assume
+that one would require the write permission
+
+536
+00:45:58,890 --> 00:46:03,910
+if one was going to modify the contents of
+a directory. Now, one would modify the contents
+
+537
+00:46:03,910 --> 00:46:09,010
+of the directory, if one needed to remove
+a directory entry or to add a new directory
+
+538
+00:46:09,010 --> 00:46:13,809
+entry and therefore to do either of these
+operations, it may be necessary to have the
+
+539
+00:46:13,809 --> 00:46:18,990
+write permission on a directory. Similarly,
+for execute, one could argue what the meaning
+
+540
+00:46:18,990 --> 00:46:22,770
+of the execute permission might have on a
+directory and so on.
+
+541
+00:46:22,770 --> 00:46:28,470
+So, with this, we understand that, while,
+in order to specify the different authorizations
+
+542
+00:46:28,470 --> 00:46:32,720
+that millions of, on millions of files by
+thousands of users in the first case, it look
+
+543
+00:46:32,720 --> 00:46:36,700
+like a huge amount of information might have
+to be remembered. With this simple scheme,
+
+544
+00:46:36,700 --> 00:46:41,680
+unix systems are able to manage with just
+nine bits of information for each file in
+
+545
+00:46:41,680 --> 00:46:43,559
+the file system.
+
+546
+00:46:43,559 --> 00:46:49,990
+So subsequently, once the information about
+what operations can be done by each class
+
+547
+00:46:49,990 --> 00:46:56,990
+of users on a particular file, the next question
+is how is this going to be enforced. So, the
+
+548
+00:46:57,109 --> 00:47:02,000
+access enforcement. The first issue in protection
+mechanism was authenticating the users, the
+
+549
+00:47:02,000 --> 00:47:06,260
+second issue was actually having track of
+the information about what operations each
+
+550
+00:47:06,260 --> 00:47:11,980
+user could do on each file. The third aspect
+is enforcing those authorizations, making
+
+551
+00:47:11,980 --> 00:47:17,410
+sure that the user who does not have permission
+to read a file, does not when that user attempts
+
+552
+00:47:17,410 --> 00:47:21,150
+to write a program that does read the file,
+making sure that the access is not allowed.
+
+553
+00:47:21,150 --> 00:47:26,740
+So, that is the objective of access enforcement.
+And as you can well imagine, this is the important
+
+554
+00:47:26,740 --> 00:47:31,960
+final step of the protection problem and it
+involves preventing users from doing unauthorized
+
+555
+00:47:31,960 --> 00:47:38,780
+accesses to files and would clearly involve
+whenever user attempts to open a file to do,
+
+556
+00:47:38,780 --> 00:47:42,660
+let us say, read access, the operating system
+is checking to make sure that, this particular
+
+557
+00:47:42,660 --> 00:47:47,069
+user with that particular user id has the
+permissions and this can be done by referring
+
+558
+00:47:47,069 --> 00:47:51,299
+to the access bits, the nine access bits associated
+with the file.
+
+559
+00:47:51,299 --> 00:47:56,369
+Now, one piece of information which I did
+not mention, I talked about these nine bits
+
+560
+00:47:56,369 --> 00:48:02,480
+of information with a file and the question
+will of course, arise to where the nine bits
+
+561
+00:48:02,480 --> 00:48:07,099
+of information be stored. You will recall
+that, associated with each file, there is
+
+562
+00:48:07,099 --> 00:48:12,140
+a directory entry and the directory entry
+contains a mapping between the file name.
+
+563
+00:48:12,140 --> 00:48:18,579
+So, directory entry contains mapping between
+the file name and the I node number. For example,
+
+564
+00:48:18,579 --> 00:48:23,400
+might be I node number thirteen, the file
+descriptor, the I node which contains the
+
+565
+00:48:23,400 --> 00:48:27,530
+information about that location of the different
+data blocks of the file. Where then are the
+
+566
+00:48:27,530 --> 00:48:32,400
+read, write, execute the nine bit stored as
+far as file a dot out is concerned? Where
+
+567
+00:48:32,400 --> 00:48:36,289
+is the information about who the owner of
+the file a dot out is concerned is stored?
+
+568
+00:48:36,289 --> 00:48:41,690
+Now, when we talked about the directory, clearly
+said that, directory was the mapping between
+
+569
+00:48:41,690 --> 00:48:46,500
+file names and file descriptors. I never said
+that, the directory contains other information.
+
+570
+00:48:46,500 --> 00:48:50,280
+And there may well be reasons for not wanting
+to put additional information inside the file
+
+571
+00:48:50,280 --> 00:48:55,660
+directory. Because, as we have, as I have
+suggested, a directory is like a file on the
+
+572
+00:48:55,660 --> 00:49:00,829
+disk and can actually be opened by any user
+who has read permission to the directory and
+
+573
+00:49:00,829 --> 00:49:04,510
+the contents of the directory can be read.
+Therefore, it is probably not a good idea
+
+574
+00:49:04,510 --> 00:49:09,039
+for the operating system to keep a lot of
+additional information inside the directory.
+
+575
+00:49:09,039 --> 00:49:12,299
+Where then, is this additional information
+contain and the additional information that
+
+576
+00:49:12,299 --> 00:49:17,950
+I am talking about are the read write execute
+bits associated with that file, as well as
+
+577
+00:49:17,950 --> 00:49:24,020
+information such as, who is the owner of the
+file, who are the members of the group associated
+
+578
+00:49:24,020 --> 00:49:27,700
+with that file and so on. So, there are lot
+of other pieces of information associated
+
+579
+00:49:27,700 --> 00:49:34,160
+with a file, then operating system will have
+to keep track off .And as far as much of this
+
+580
+00:49:34,160 --> 00:49:39,190
+information is concerned, the information
+will in fact, be stored inside the structured,
+
+581
+00:49:39,190 --> 00:49:43,180
+which until no,w I have been calling - the
+I node,the index node. So, the index node,
+
+582
+00:49:43,180 --> 00:49:48,470
+in addition to containing the index corresponding
+to the file, will also contain other information
+
+583
+00:49:48,470 --> 00:49:54,190
+conceivably the read write execute permissions
+permission bits on the file, as well as information
+
+584
+00:49:54,190 --> 00:49:59,089
+about who the owner of the file is and there
+could be other piece of information such as
+
+585
+00:49:59,089 --> 00:50:05,369
+the date and time on which the file was created,
+the date and time at which the file was last
+
+586
+00:50:05,369 --> 00:50:10,319
+modified and there is other information that
+might be relevant as far as a file is concerned.
+
+587
+00:50:10,319 --> 00:50:14,950
+So, all of this additional information about
+a file will typically not be stored in the
+
+588
+00:50:14,950 --> 00:50:19,599
+directory. But will actually be stored inside
+the I node or the index node, corresponding
+
+589
+00:50:19,599 --> 00:50:24,490
+to the file. And the index node contains the
+index, in addition to all this information.
+
+590
+00:50:24,490 --> 00:50:29,130
+We understand why it is called the index node
+rather than being referred as to the index.
+
+591
+00:50:29,130 --> 00:50:36,130
+Now, putting all this together, we realize
+that, as far as the operating system is concerned,
+
+592
+00:50:36,950 --> 00:50:42,589
+the disk contains a lot of information. Let
+me just draw the disk over here, we have a
+
+593
+00:50:42,589 --> 00:50:47,119
+perspective of the disk as being linearly
+addressed from disk block 0 up to some maximum
+
+594
+00:50:47,119 --> 00:50:51,839
+disk block address and parts of the disk are
+used for the file system. So, there could
+
+595
+00:50:51,839 --> 00:50:56,130
+be regions of the disk which contains the
+blocks of the different files.
+
+596
+00:50:56,130 --> 00:51:00,079
+But in addition to this, there is a lot of
+information regarding the file system such
+
+597
+00:51:00,079 --> 00:51:05,220
+as, all the I nodes that also will have to
+be stored on the disk. Therefore, we suspect
+
+598
+00:51:05,220 --> 00:51:09,910
+that parts of the disk are going to be reserved
+by the operating system for things like remembering
+
+599
+00:51:09,910 --> 00:51:15,750
+the I nodes of all the files which are stored
+inside the file system. And once we learn
+
+600
+00:51:15,750 --> 00:51:19,299
+a little bit more about the way that the disk
+is used, we would have been able to understand
+
+601
+00:51:19,299 --> 00:51:24,230
+how to access the I nodes.
+Now, one final comment on these, the aspect
+
+602
+00:51:24,230 --> 00:51:30,480
+of protection. I have talked about how one
+could imagine writing an l s program. l s
+
+603
+00:51:30,480 --> 00:51:34,859
+program is the program which you invoke l
+s and it will list on the screen, the contents
+
+604
+00:51:34,859 --> 00:51:39,740
+that the names of the various files which
+are present in the directory- the current
+
+605
+00:51:39,740 --> 00:51:44,010
+directory. And I suggested that, this could
+be done by opening the directory as a file
+
+606
+00:51:44,010 --> 00:51:48,839
+and reading and writing its contents. But
+we now understand that, the contents of the
+
+607
+00:51:48,839 --> 00:51:53,099
+directory include the name of the file, but
+a lot of the information that we know, the
+
+608
+00:51:53,099 --> 00:51:57,349
+l s program is capable of giving to us is
+not contained in the directory itself. It
+
+609
+00:51:57,349 --> 00:52:01,930
+is actually contained inside the index node
+or the I node,corresponding to the file. And
+
+610
+00:52:01,930 --> 00:52:05,250
+therefore, writing the l s program may require
+a little bit more information that what we
+
+611
+00:52:05,250 --> 00:52:07,030
+actually have at this point in time.
+
+612
+00:52:07,030 --> 00:52:12,839
+Now, with this comments, I will close our
+discussion of the fundamental issues in file
+
+613
+00:52:12,839 --> 00:52:19,150
+system design. And in the next lecture, we
+will move on to another and very important
+
+614
+00:52:19,150 --> 00:52:24,650
+topic from the perspective of our programming,
+that is file system performance.
+
+615
+00:52:24,650 --> 00:52:28,690
+Now, we understand that the files are all
+stored on disk and that we have programs which
+
+616
+00:52:28,690 --> 00:52:32,960
+will access the files by opening them, reading
+the contents of the file. Therefore, we would
+
+617
+00:52:32,960 --> 00:52:36,460
+like to know something more about files from
+the perspective of understanding how we can
+
+618
+00:52:36,460 --> 00:52:41,430
+make our programs which access files more
+efficient in terms of time. We will show in
+
+619
+00:52:41,430 --> 00:52:42,420
+the next lecture. Thank you.
+
