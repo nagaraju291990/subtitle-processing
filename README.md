@@ -3,8 +3,8 @@
 
     python3 srt-text2.py -i=input.srt > sub_text.txt
 
-This script will extract text from srt file with timelines being replaced into placeholders as [SUB____1000]
-Also there will be a timeline file generated from srt file that will be used in the later stage.
+> This script will extract text from srt file with timelines being replaced into placeholders as [SUB____1000]
+> Also there will be a timeline file generated from srt file that will be used in the later stage.
 
 ### Dependency:
     pip3 install pysrt
