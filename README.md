@@ -46,4 +46,4 @@ This script wiil remove rich text from subtitle(srt)/transcription file.
 python3 auto_tagging.py inputfile(.txt|.srt)
 ```
 
-This script will add annotaitons of <lp> based on heuristics.
+This script will add annotaitons of &lt;lp&gt; based on heuristics.
