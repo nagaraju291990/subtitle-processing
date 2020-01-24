@@ -12,6 +12,8 @@ parser = ArgumentParser(description='Extract text from srt file \n\r'+
 						)
 parser.add_argument("-i", "--input", dest="inputfile",
                     help="provide .srt file name",required=True)
+parser.add_argument("-p", "--placeholder", dest="placeholder",
+                    help="yes or no",required=True)
 args = parser.parse_args()
 
 inputfile = args.inputfile
