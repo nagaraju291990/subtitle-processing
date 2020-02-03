@@ -3,10 +3,8 @@
 To extract text from srt file.
 
 ```bash
-python3 srt-text2.py -i=input.srt -t=[ab|lp|both] > sub_text.txt
+python3 srt-text2.py -i=input.srt > sub_text.txt
 ```
-In the tag option use any one of the tag or both without square brackets
-
 <span style="color:blue">This script will extract text from srt file with timelines being replaced into placeholders as [SUB____1000] or newline.
 Also there will be a timeline file generated from srt file that will be used in the later stage.</span>
 
@@ -57,7 +55,9 @@ This script wiil remove rich text from subtitle(srt)/transcription file.
 ## Script6:
 
 ```bash
-python3 auto_tagging.py inputfile(.txt|.srt)
+python3 auto_tagging_basic.py -i=inputfile(.txt|.srt) -t=[ab|lp|both] 
 ```
+In the tag option use any one of the tag ab or lp or both without square brackets.
 
-This script will add annotaitons of &lt;lp&gt; based on heuristics.
+
+This script will add annotaitons of &lt;lp&gt; and &lt;AB&gt; based on heuristics.
