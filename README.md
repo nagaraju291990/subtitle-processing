@@ -61,3 +61,11 @@ In the tag option use any one of the tag ab or lp or both without square bracket
 
 
 This script will add annotaitons of &lt;lp&gt; and &lt;AB&gt; based on heuristics.
+
+## Combine two word lines in a srt file into one - Script7:
+
+```bash
+python3 srt-join.py -i=processed/FMFS-M1.srt
+```
+Input is a srt file with timeline and text in between timelines.
+
