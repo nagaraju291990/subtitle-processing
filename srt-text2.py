@@ -13,10 +13,14 @@ parser = ArgumentParser(description='Extract text from srt file \n\r'+
 parser.add_argument("-i", "--input", dest="inputfile",
                     help="provide .srt file name",required=True)
 parser.add_argument("-p", "--placeholder", dest="placeholder",
-                    help="yes or no",required=True)
+                    help="yes or no",required=False)
 args = parser.parse_args()
 
 inputfile = args.inputfile
+placeholder = args.placeholder
+if(placeholder == None):
+	placeholder = '\n'
+
 new_line = []
 timeline = []
 timeline_hash = {}
@@ -39,7 +43,8 @@ def extractText(i):
 		timeline_end = str(sub.end)
 		cur_text = sub.text
 		cur_text = re.sub(r'\n', ' ' ,cur_text)
-		sub_placeholder = "[SUB____" + str(count) + "]"
+		#sub_placeholder = "[SUB____" + str(count) + "]"
+		sub_placeholder = "\n"
 		outfp.write(str(sub.start) + " --> " + str(sub.end) +"\n")
 		#timeline_hash[sub_placeholder] = str(sub.start) + " --> " + str(sub.end) 
 		#new_line.append("[" + str(sub.start) + " --> " + str(sub.end) + "]")
@@ -62,5 +67,6 @@ for line in new_line:
 	line = re.sub(r']', '] ',line)
 	#line = re.sub(r'\.', '.\n' ,line)
 	#line = line.strip()
-	print(line,end=' ')
+	#print(line,end=' ')
+	print(line)
 	count = count + 1
