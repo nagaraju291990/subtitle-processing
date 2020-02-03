@@ -44,7 +44,7 @@ def extractText(i):
 		cur_text = sub.text
 		cur_text = re.sub(r'\n', ' ' ,cur_text)
 		#sub_placeholder = "[SUB____" + str(count) + "]"
-		sub_placeholder = "\n"
+		sub_placeholder = " ";#z\n"
 		outfp.write(str(sub.start) + " --> " + str(sub.end) +"\n")
 		#timeline_hash[sub_placeholder] = str(sub.start) + " --> " + str(sub.end) 
 		#new_line.append("[" + str(sub.start) + " --> " + str(sub.end) + "]")
@@ -67,6 +67,6 @@ for line in new_line:
 	line = re.sub(r']', '] ',line)
 	#line = re.sub(r'\.', '.\n' ,line)
 	#line = line.strip()
-	#print(line,end=' ')
-	print(line)
+	print(line,end=' ')
+	#print(line)
 	count = count + 1
