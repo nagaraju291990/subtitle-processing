@@ -1,4 +1,4 @@
-## Script1:
+## Extract text from srt - Script1:
 
 To extract text from srt file.
 
@@ -44,7 +44,7 @@ This script will generate subtitles as in original srt file named 'outfile.srt' 
 This script will break each subtitle into two lines.
 
 
-## Script5:
+## Remove Rich text - Script5:
 
 ```bash
 python3 remove_rich_text.py -i input.srt 
@@ -52,7 +52,7 @@ python3 remove_rich_text.py -i input.srt
 
 This script wiil remove rich text from subtitle(srt)/transcription file.
 
-## Script6:
+## Auto tagging of srt/text file - Script6:
 
 ```bash
 python3 auto_tagging_basic.py -i=inputfile(.txt|.srt) -t=[ab|lp|both] 
