@@ -8,7 +8,7 @@ import pysrt
 
 parser = ArgumentParser(description='Extract text from srt file \n\r'+
 						"How to Run?\n" +
-						"python3 " + sys.argv[0] + " -i=file.srt " + "-o=all"
+						"python3 " + sys.argv[0] + " -i=file.srt " + "-p=[ab|lp|both]"
 						)
 parser.add_argument("-i", "--input", dest="inputfile",
                     help="provide .srt file name",required=True)
