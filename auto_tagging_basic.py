@@ -47,7 +47,7 @@ for line in lines:
 
 	#lp -- longpause annotation 
 	if( (tag == "both" or tag =="lp") and (not re.search(r'-->', line)) ):
-		line = re.sub(r'(,|\.)', r'\1 <lp> ', line, flags = re.MULTILINE)
+		line = re.sub(r'(,|\.|:|;|\'|\?)', r'\1 <lp> ', line, flags = re.MULTILINE)
 
 	##spaces normalization
 	line = re.sub(r'^ *', "", line, flags = re.MULTILINE)
