@@ -11,7 +11,7 @@ parser = ArgumentParser(description='This script will tag <lp> and <AB> in a srt
 
 parser.add_argument("-i", "--input", dest="inputfile",
 					help="provide .txt file name",required=True)
-parser.add_argument("-t", "--tags", dest="tag=ab|lp|both",
+parser.add_argument("-t", "--tags", dest="tag",
 					help="specify what are the tags to be marked", required=False)
 
 args = parser.parse_args()
@@ -35,8 +35,8 @@ for line in lines:
 	#line = re.sub(r'(\bcough\b|\bsneeze\b|\blaugh\b)', r'<O>\1</O>', line, flags=re.MULTILINE|re.IGNORECASE)
 
 	#Abbrevations
-	if( (tag == "both" or tag =="ab") and (not re.search(r'-->', line))  and (not re.search(r'HES|PET', line))) :
-		line = re.sub(r'([A-Z](\-)?[A-Z]+(\-)?[A-Z]+)', r'<AB>\1</AB>', line, flags=re.MULTILINE)
+	if( (tag == "both" or tag =="ab") and (not re.search(r'-->', line))  and (not re.search(r'HES|PET|MUSIC', line))) :
+		line = re.sub(r'([A-Z]([\-\.])?[A-Z]+([\-\.])?([A-Z]+)?)', r'<AB>\1</AB>', line, flags=re.MULTILINE)
 
 	#hesistations
 	#line = re.sub(r'(\bAhh\b|\buhh\b|\buh\b|\ber\b)', r'<HES>\1</HES>', line, flags=re.MULTILINE|re.IGNORECASE)
