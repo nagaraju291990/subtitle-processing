@@ -70,3 +70,14 @@ python3 srt-join.py -i=processed/FMFS-M1.srt
 ```
 Input is a srt file with timeline and text in between timelines.
 
+## Create srt file from timeline file - Script8:
+
+```bash
+python3 create_srt.py FMFS-M1.txt
+```
+Input is of format
+0:28
+Hello friends, today we are looking to finish the tenth module of our course, where we are
+0:33
+talking about the biological effect of radiation.
+0:37
