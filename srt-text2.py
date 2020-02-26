@@ -1,4 +1,4 @@
-#This script converts srt file into text format like text.....[SUB____1]....text [SUB____2] 
+#This script converts srt file into text format like text.....[SUB____1]....text [SUB____2]
 #and also generates a timeline file required later for processing
 from argparse import ArgumentParser
 import re
@@ -19,7 +19,7 @@ args = parser.parse_args()
 inputfile = args.inputfile
 placeholder = args.placeholder
 if(placeholder == None):
-	placeholder = '\n'
+	placeholder = ''
 
 new_line = []
 timeline = []
@@ -44,9 +44,10 @@ def extractText(i):
 		cur_text = sub.text
 		cur_text = re.sub(r'\n', ' ' ,cur_text)
 		#sub_placeholder = "[SUB____" + str(count) + "]"
-		sub_placeholder = " ";#z\n"
+		#sub_placeholder = " ";#z\n"
+		sub_placeholder = placeholder;#z\n"
 		outfp.write(str(sub.start) + " --> " + str(sub.end) +"\n")
-		#timeline_hash[sub_placeholder] = str(sub.start) + " --> " + str(sub.end) 
+		#timeline_hash[sub_placeholder] = str(sub.start) + " --> " + str(sub.end)
 		#new_line.append("[" + str(sub.start) + " --> " + str(sub.end) + "]")
 		new_line.append(sub_placeholder)
 		new_line[-1] = new_line[-1].strip() + cur_text

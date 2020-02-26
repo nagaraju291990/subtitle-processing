@@ -43,6 +43,7 @@ if(tag == "both" or tag == "fw"):
 	#save as regex
 	fw_dict = "(\\b" + "\\b|".join(fwlines)  + ")"
 	fw_dict = re.sub(r'\n', "", fw_dict)
+	fw_dict += "\\b"
 	#print(fw_dict)
 	#exit()
 for line in lines:
@@ -62,13 +63,13 @@ for line in lines:
 	#line = re.sub(r'(\bokay\b|\bok\b|\bright\b|\bso\b)', r'<PET>\1</PET>', line, flags=re.MULTILINE|re.IGNORECASE)
 
 
-	#lp -- longpause annotation 
+	#lp -- longpause annotation
 	#if( (tag == "both" or tag =="lp") and (not re.search(r'-->', line)) ):
 	#	line = re.sub(r'(,|\.|:|;|\'|\?)', r'\1 <lp> ', line, flags = re.MULTILINE)
 
 	#fw marking
 	if( (tag == "both" or tag == "fw") and (not re.search(r'-->', line)) ):
-		line = re.sub(r'' + fw_dict, r'<FW>\1</FW>', line, flags=re.MULTILINE|re.IGNORECASE)
+		line = re.sub(r'' + fw_dict , r'<FW>\1</FW>', line, flags=re.MULTILINE|re.IGNORECASE)
 
 	##spaces normalization
 	line = re.sub(r'^ *', "", line, flags = re.MULTILINE)
