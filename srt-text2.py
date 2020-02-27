@@ -19,7 +19,9 @@ args = parser.parse_args()
 inputfile = args.inputfile
 placeholder = args.placeholder
 if(placeholder == None):
-	placeholder = ''
+	placeholder = 'no'
+else:
+	placeholder = placeholder.lower()
 
 new_line = []
 timeline = []
@@ -44,8 +46,8 @@ def extractText(i):
 		cur_text = sub.text
 		cur_text = re.sub(r'\n', ' ' ,cur_text)
 		#sub_placeholder = "[SUB____" + str(count) + "]"
-		#sub_placeholder = " ";#z\n"
-		sub_placeholder = placeholder;#z\n"
+		sub_placeholder = " ";#z\n"
+		#print(sub_placeholder)
 		outfp.write(str(sub.start) + " --> " + str(sub.end) +"\n")
 		#timeline_hash[sub_placeholder] = str(sub.start) + " --> " + str(sub.end)
 		#new_line.append("[" + str(sub.start) + " --> " + str(sub.end) + "]")
@@ -68,6 +70,9 @@ for line in new_line:
 	line = re.sub(r']', '] ',line)
 	#line = re.sub(r'\.', '.\n' ,line)
 	#line = line.strip()
-	print(line,end=' ')
+	if(placeholder == "yes"):
+		print(line)
+	else:
+		print(line, end='')
 	#print(line)
 	count = count + 1
