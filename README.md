@@ -81,3 +81,9 @@ Hello friends, today we are looking to finish the tenth module of our course, wh
 0:33
 talking about the biological effect of radiation.
 0:37
+
+## extract other than english text from a srt file - Script9:
+```bash
+python3 extract_eng_srt.py input.srt
+```
+
