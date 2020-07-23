@@ -1,0 +1,99 @@
+1
+00:00:00,030 --> 00:00:01,680
+dear friends we are going to look into
+
+2
+00:00:01,680 --> 00:00:03,810
+numpy by module today it is extremely
+
+3
+00:00:03,810 --> 00:00:06,870
+popular in Python community and it is
+
+4
+00:00:06,870 --> 00:00:10,139
+heavily used for scientific computing we
+
+5
+00:00:10,139 --> 00:00:12,509
+will see why it is so popular so let's
+
+6
+00:00:12,509 --> 00:00:14,730
+first start by installing it I will
+
+7
+00:00:14,730 --> 00:00:18,060
+install it using pip you can run pip
+
+8
+00:00:18,060 --> 00:00:22,170
+install numpy white come on to download
+
+9
+00:00:22,170 --> 00:00:25,310
+and install it while it is installing
+
+10
+00:00:25,310 --> 00:00:29,340
+numpy wise main object is n dimensional
+
+11
+00:00:29,340 --> 00:00:32,729
+array okay so we will look into that
+
+12
+00:00:32,729 --> 00:00:38,160
+array so here I have my Python Idol
+
+13
+00:00:38,160 --> 00:00:41,790
+shall open and I'm going to import numpy
+
+14
+00:00:41,790 --> 00:00:47,309
+Y model here so num I've imported it as
+
+15
+00:00:47,309 --> 00:00:52,829
+NP and to create an array object you
+
+16
+00:00:52,829 --> 00:00:56,910
+will use NP dot array and in this
+
+17
+00:00:56,910 --> 00:01:00,750
+bracket you just pass down your list so
+
+18
+00:01:00,750 --> 00:01:06,270
+this is my num P Y array if you look
+
+19
+00:01:06,270 --> 00:01:09,510
+into it now this is sort of similar to a
+
+20
+00:01:09,510 --> 00:01:12,090
+list it is actually very similar to a
+
+21
+00:01:12,090 --> 00:01:15,180
+list you can access the elements by
+
+22
+00:01:15,180 --> 00:01:17,460
+index it looks like a list so the
+
+23
+00:01:17,460 --> 00:01:20,400
+question is I only have a list why do I
+
+24
+00:01:20,400 --> 00:01:24,299
+need this number by array well there are
+
+25
+00:01:24,299 --> 00:01:28,130
+several benefits of using numpy array.

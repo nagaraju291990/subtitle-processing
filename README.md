@@ -87,3 +87,7 @@ talking about the biological effect of radiation.
 python3 extract_eng_srt.py input.srt
 ```
 
+## merge two subtitle blocks into one
+```
+python3 merge_two_subtitles.py -i=tests/numpy-tutorial-eng-input.srt > out.srt
+```
