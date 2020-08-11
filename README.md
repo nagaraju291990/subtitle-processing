@@ -91,3 +91,9 @@ python3 extract_eng_srt.py input.srt
 ```
 python3 merge_two_subtitles.py -i=tests/numpy-tutorial-eng-input.srt > out.srt
 ```
+
+## merge two lines in a subtitle block into one
+```
+python3 merge_two2one.py /home/nagaraju/Downloads/FMFS-module-24-subtitle.srt
+```
+
