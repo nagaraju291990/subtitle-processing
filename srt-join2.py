@@ -39,9 +39,11 @@ for i in range(0, len(subs)):
 	#	continue
 
 	cur_sub = subs[i]
-	next_sub = subs[i+1]
-
-
+	try:
+		next_sub = subs[i+1]
+	except:
+		#print(cur_sub.text)
+		next_sub = cur_sub#'Hello just something here to skip' 
 
 	#for line in next_sub.text:
 	if(len(re.findall(" ", next_sub.text)) <= 1):
