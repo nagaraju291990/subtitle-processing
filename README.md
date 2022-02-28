@@ -97,3 +97,7 @@ python3 merge_two_subtitles.py -i=tests/numpy-tutorial-eng-input.srt > out.srt
 python3 merge_two2one.py /home/nagaraju/Downloads/FMFS-module-24-subtitle.srt
 ```
 
+##  merget two subtitle into one if one of them has only two words
+```
+python3 srt-join2.py -i=test.srt
+```
