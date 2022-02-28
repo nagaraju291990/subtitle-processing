@@ -31,12 +31,12 @@ for i in range(0, len(subs)):
 		continue
 	flag = 0
 	#print(i,len(subs))
-	if(i == len(subs) -1 and i%2 == 0):
-		subs[i].index = count
-		out_subs.append(subs[i])
-		continue
-	if(i%2 != 0):
-		continue
+	#if(i == len(subs) -1 and i%2 == 0):
+	#	subs[i].index = count
+	#	out_subs.append(subs[i])
+	#	continue
+	#if(i%2 != 0):
+	#	continue
 
 	cur_sub = subs[i]
 	next_sub = subs[i+1]
